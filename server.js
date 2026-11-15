@@ -5,6 +5,7 @@ const session = require('express-session');
 const path = require('path');
 const { connectToDatabase } = require('./db');
 const authRoutes = require('./routes/auth');
+const customerRoutes = require('./routes/customers');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -23,6 +24,7 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
 
 async function startServer() {
   try {

@@ -118,7 +118,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
   - **Commit:** `add admin login and session auth`
   - **Test:** login with correct and wrong creds; `/api/auth/me` reflects state.
 
-- [ ] **Task 3: Add customer CRUD endpoints and page** [M]
+- [x] **Task 3: Add customer CRUD endpoints and page** [M]
   - `routes/customers.js`: POST (validate `name` + `phone`), GET list, GET by id, PUT, DELETE.
   - `public/customers.html`: table with add form, delete button, inline edit.
   - `public/app.js`: shared fetch helper with `credentials: 'include'`.
@@ -200,7 +200,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
 
 | Day | Date | Task 1 | Task 2 | Task 3 | Task 4 | Pushed | Commits | Commit hashes |
 |-----|------|--------|--------|--------|--------|--------|---------|---------------|
-| 1 | 2026-11-15 | [x] | [x] | [ ] | [ ] | [ ] | 4 | |
+| 1 | 2026-11-15 | [x] | [x] | [x] | [ ] | [ ] | 4 | |
 | 2 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 | 3 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 

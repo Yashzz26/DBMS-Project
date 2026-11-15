@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customers</title>
+</head>
+<body>
+  <main>
+    <h1>Customers</h1>
+    <form id="customer-form">
+      <input name="name" placeholder="Name" required>
+      <input name="phone" placeholder="Phone" required>
+      <input name="email" type="email" placeholder="Email">
+      <button type="submit">Add customer</button>
+    </form>
+    <p id="customer-message" role="status"></p>
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+      <tbody id="customer-list"></tbody>
+    </table>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    const form = document.querySelector('#customer-form');
+    const list = document.querySelector('#customer-list');
+    const message = document.querySelector('#customer-message');
+
+    function customerRow(customer) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td contenteditable="true" data-field="name">${customer.name}</td>
+        <td contenteditable="true" data-field="phone">${customer.phone}</td>
+        <td contenteditable="true" data-field="email">${customer.email || ''}</td>
+        <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
+      row.dataset.id = customer._id;
+      return row;
+    }
+
+    async function loadCustomers() {
+      list.replaceChildren();
+      const customers = await apiFetch('/api/customers');
+      customers.forEach((customer) => list.append(customerRow(customer)));
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      try {
+        await apiFetch('/api/customers', { method: 'POST', body: JSON.stringify(data) });
+        form.reset();
+        await loadCustomers();
+        message.textContent = 'Customer added';
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    list.addEventListener('click', async (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const row = event.target.closest('tr');
+      try {
+        if (action === 'delete') {
+          await apiFetch(`/api/customers/${row.dataset.id}`, { method: 'DELETE' });
+        } else {
+          const data = Object.fromEntries([...row.querySelectorAll('[data-field]')]
+            .map((cell) => [cell.dataset.field, cell.textContent.trim()]));
+          await apiFetch(`/api/customers/${row.dataset.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+          });
+        }
+        await loadCustomers();
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    loadCustomers().catch((error) => { message.textContent = error.message; });
+  </script>
+</body>
+</html>
