@@ -125,7 +125,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
   - **Commit:** `add customer crud endpoints and page`
   - **Test:** all 5 endpoints in Postman; CRUD reflected in page.
 
-- [ ] **Task 4: Add device CRUD endpoints and page** [M]
+- [x] **Task 4: Add device CRUD endpoints and page** [M]
   - `routes/devices.js`: same 5 endpoints. `GET /api/devices?customerId=...` filters.
   - `public/devices.html`: dropdown of customers + form + table.
   - **Commit:** `add device crud endpoints and page`
@@ -200,7 +200,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
 
 | Day | Date | Task 1 | Task 2 | Task 3 | Task 4 | Pushed | Commits | Commit hashes |
 |-----|------|--------|--------|--------|--------|--------|---------|---------------|
-| 1 | 2026-11-15 | [x] | [x] | [x] | [ ] | [ ] | 4 | |
+| 1 | 2026-11-15 | [x] | [x] | [x] | [x] | [ ] | 4 | |
 | 2 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 | 3 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 

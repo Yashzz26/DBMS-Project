@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Devices</title>
+</head>
+<body>
+  <main>
+    <h1>Devices</h1>
+    <p><a href="/customers.html">Manage customers</a></p>
+    <form id="device-form">
+      <select name="customerId" id="customer-id" required></select>
+      <input name="type" placeholder="Type" required>
+      <input name="brand" placeholder="Brand" required>
+      <input name="model" placeholder="Model" required>
+      <button type="submit">Add device</button>
+    </form>
+    <label>Filter by customer <select id="filter-customer"><option value="">All customers</option></select></label>
+    <p id="device-message" role="status"></p>
+    <table>
+      <thead><tr><th>Customer</th><th>Type</th><th>Brand</th><th>Model</th><th>Actions</th></tr></thead>
+      <tbody id="device-list"></tbody>
+    </table>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    const form = document.querySelector('#device-form');
+    const customerSelect = document.querySelector('#customer-id');
+    const filterSelect = document.querySelector('#filter-customer');
+    const list = document.querySelector('#device-list');
+    const message = document.querySelector('#device-message');
+    let customers = [];
+
+    function customerName(id) {
+      return customers.find((customer) => customer._id === id)?.name || 'Unknown';
+    }
+
+    function deviceRow(device) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${customerName(device.customerId)}</td>
+        <td contenteditable="true" data-field="type">${device.type}</td>
+        <td contenteditable="true" data-field="brand">${device.brand}</td>
+        <td contenteditable="true" data-field="model">${device.model}</td>
+        <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
+      row.dataset.id = device._id;
+      row.dataset.customerId = device.customerId;
+      return row;
+    }
+
+    async function loadDevices() {
+      const suffix = filterSelect.value ? `?customerId=${filterSelect.value}` : '';
+      list.replaceChildren();
+      const devices = await apiFetch(`/api/devices${suffix}`);
+      devices.forEach((device) => list.append(deviceRow(device)));
+    }
+
+    async function loadCustomers() {
+      customers = await apiFetch('/api/customers');
+      customerSelect.replaceChildren(...customers.map((customer) => new Option(customer.name, customer._id)));
+      filterSelect.append(...customers.map((customer) => new Option(customer.name, customer._id)));
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await apiFetch('/api/devices', {
+          method: 'POST',
+          body: JSON.stringify(Object.fromEntries(new FormData(form)))
+        });
+        form.reset();
+        await loadDevices();
+        message.textContent = 'Device added';
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    filterSelect.addEventListener('change', () => loadDevices().catch((error) => { message.textContent = error.message; }));
+    list.addEventListener('click', async (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const row = event.target.closest('tr');
+      try {
+        if (action === 'delete') {
+          await apiFetch(`/api/devices/${row.dataset.id}`, { method: 'DELETE' });
+        } else {
+          const data = Object.fromEntries([...row.querySelectorAll('[data-field]')]
+            .map((cell) => [cell.dataset.field, cell.textContent.trim()]));
+          await apiFetch(`/api/devices/${row.dataset.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ ...data, customerId: row.dataset.customerId })
+          });
+        }
+        await loadDevices();
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    loadCustomers()
+      .then(loadDevices)
+      .catch((error) => { message.textContent = error.message; });
+  </script>
+</body>
+</html>

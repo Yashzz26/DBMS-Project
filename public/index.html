@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Repair Shop</title></head>
+<body>
+  <main>
+    <h1>Repair Shop Admin</h1>
+    <nav><a href="/customers.html">Customers</a> <a href="/devices.html">Devices</a></nav>
+    <button id="logout">Sign out</button>
+  </main>
+  <script>
+    document.querySelector('#logout').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login.html';
+    });
+  </script>
+</body>
+</html>
