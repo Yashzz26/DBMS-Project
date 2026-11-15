@@ -101,7 +101,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
 
 ### Day 1 — Foundation, Auth, Customers, Devices
 
-- [ ] **Task 1: Initialize Express project and MongoDB connection** [M]
+- [x] **Task 1: Initialize Express project and MongoDB connection** [M]
   - Run `npm init`, install `express`, `mongodb`, `dotenv`, `express-session`, `nodemon`.
   - Create folder structure: `server.js`, `db.js`, `routes/`, `middleware/`, `public/`, `scripts/`.
   - Create `.gitignore` (`node_modules/`, `.env`, `*.log`), `.env.example` with placeholders.
@@ -200,7 +200,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
 
 | Day | Date | Task 1 | Task 2 | Task 3 | Task 4 | Pushed | Commits | Commit hashes |
 |-----|------|--------|--------|--------|--------|--------|---------|---------------|
-| 1 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
+| 1 | 2026-11-15 | [x] | [ ] | [ ] | [ ] | [ ] | 4 | |
 | 2 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 | 3 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 
