@@ -110,7 +110,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
   - **Commit:** `set up express server and mongo connection`
   - **Test:** `curl http://localhost:3000/api/health` returns ok.
 
-- [ ] **Task 2: Add admin login and session auth** [M]
+- [x] **Task 2: Add admin login and session auth** [M]
   - `routes/auth.js`: `POST /api/auth/login` (checks `.env` `ADMIN_USER` / `ADMIN_PASS`, sets session), `POST /api/auth/logout`, `GET /api/auth/me`.
   - `middleware/requireAdmin.js`: returns `401` if no session.
   - `public/login.html` + JS: form posts to login, redirects to `index.html` on success.
@@ -200,7 +200,7 @@ Every commit message must be **short, plain, human-readable**, e.g.:
 
 | Day | Date | Task 1 | Task 2 | Task 3 | Task 4 | Pushed | Commits | Commit hashes |
 |-----|------|--------|--------|--------|--------|--------|---------|---------------|
-| 1 | 2026-11-15 | [x] | [ ] | [ ] | [ ] | [ ] | 4 | |
+| 1 | 2026-11-15 | [x] | [x] | [ ] | [ ] | [ ] | 4 | |
 | 2 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 | 3 | | [ ] | [ ] | [ ] | [ ] | [ ] | 4 | |
 
