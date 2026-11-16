@@ -9,6 +9,7 @@ const customerRoutes = require('./routes/customers');
 const deviceRoutes = require('./routes/devices');
 const serviceRequestRoutes = require('./routes/serviceRequests');
 const serviceRecordRoutes = require('./routes/serviceRecords');
+const reportRoutes = require('./routes/reports');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -31,6 +32,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/service-requests', serviceRequestRoutes);
 app.use('/api/service-records', serviceRecordRoutes);
+app.use('/api/reports', reportRoutes);
 
 async function startServer() {
   try {
