@@ -1,17 +1,38 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Repair Shop</title></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Repair Shop Dashboard</title>
+</head>
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/index.html">Repair Shop Admin</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/index.html" aria-current="page">Dashboard</a>
+        <a href="/customers.html">Customers</a>
+        <a href="/devices.html">Devices</a>
+        <a href="/requests.html">Requests</a>
+        <a href="/reports.html">Reports</a>
+      </nav>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </header>
   <main>
-    <h1>Repair Shop Admin</h1>
-    <nav><a href="/customers.html">Customers</a> <a href="/devices.html">Devices</a></nav>
-    <button id="logout">Sign out</button>
+    <section class="hero">
+      <h1>Repair shop dashboard</h1>
+      <p>Manage customers, devices, repairs, and service performance from one place.</p>
+      <div class="quick-links">
+        <a class="quick-link" href="/customers.html"><strong>Customers</strong><br>View, add, edit, or remove customer records.</a>
+        <a class="quick-link" href="/devices.html"><strong>Devices</strong><br>Manage devices and filter them by customer.</a>
+        <a class="quick-link" href="/requests.html"><strong>Service requests</strong><br>Track repair issues and update their status.</a>
+        <a class="quick-link" href="/reports.html"><strong>Reports</strong><br>Review device, status, pending work, and revenue reports.</a>
+      </div>
+    </section>
   </main>
-  <script>
-    document.querySelector('#logout').addEventListener('click', async () => {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-      window.location.href = '/login.html';
-    });
-  </script>
+  <script src="/app.js"></script>
+  <script>setupLogout();</script>
 </body>
 </html>

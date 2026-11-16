@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Reports</title>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/index.html">Repair Shop Admin</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/index.html">Dashboard</a>
+        <a href="/customers.html">Customers</a>
+        <a href="/devices.html">Devices</a>
+        <a href="/requests.html">Requests</a>
+        <a href="/reports.html" aria-current="page">Reports</a>
+      </nav>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </header>
+  <main>
+    <h1>Service reports</h1>
+    <p id="report-message" role="status"></p>
+    <div class="report-grid">
+      <section class="panel">
+        <h2>Device-wise statistics</h2>
+        <table>
+          <thead><tr><th>Device type</th><th>Total requests</th><th>Completed</th></tr></thead>
+          <tbody id="device-stats"></tbody>
+        </table>
+      </section>
+      <section class="panel">
+        <h2>Status summary</h2>
+        <table>
+          <thead><tr><th>Status</th><th>Count</th></tr></thead>
+          <tbody id="status-summary"></tbody>
+        </table>
+      </section>
+      <section class="panel">
+        <h2>Pending repairs</h2>
+        <table>
+          <thead><tr><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th></tr></thead>
+          <tbody id="pending-repairs"></tbody>
+        </table>
+      </section>
+      <section class="panel revenue-card">
+        <h2>Revenue summary</h2>
+        <p><strong>Total revenue:</strong> <span id="total-revenue">0</span></p>
+        <p><strong>Average service cost:</strong> <span id="average-cost">0</span></p>
+        <p><strong>Completed services:</strong> <span id="completed-services">0</span></p>
+      </section>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>setupLogout();</script>
+  <script>
+    const message = document.querySelector('#report-message');
+    const money = (value) => Number(value || 0).toFixed(2);
+
+    async function loadReports() {
+      const [deviceStats, pending, statusSummary, revenue] = await Promise.all([
+        apiFetch('/api/reports/device-stats'),
+        apiFetch('/api/reports/pending'),
+        apiFetch('/api/reports/status-summary'),
+        apiFetch('/api/reports/revenue')
+      ]);
+      document.querySelector('#device-stats').replaceChildren(...deviceStats.map((row) => {
+        const element = document.createElement('tr');
+        element.innerHTML = `<td>${row._id}</td><td>${row.totalRequests}</td><td>${row.completedRequests}</td>`;
+        return element;
+      }));
+      document.querySelector('#pending-repairs').replaceChildren(...pending.map((row) => {
+        const element = document.createElement('tr');
+        element.innerHTML = `<td>${row.customer.name}</td><td>${row.device.brand} ${row.device.model}</td><td>${row.issueDescription}</td><td>${row.status}</td>`;
+        return element;
+      }));
+      document.querySelector('#status-summary').replaceChildren(...statusSummary.map((row) => {
+        const element = document.createElement('tr');
+        element.innerHTML = `<td>${row._id}</td><td>${row.count}</td>`;
+        return element;
+      }));
+      document.querySelector('#total-revenue').textContent = money(revenue.totalRevenue);
+      document.querySelector('#average-cost').textContent = money(revenue.averageCost);
+      document.querySelector('#completed-services').textContent = revenue.completedServices;
+    }
+
+    loadReports().catch((error) => { message.textContent = error.message; });
+  </script>
+</body>
+</html>

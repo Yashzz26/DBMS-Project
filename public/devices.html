@@ -3,27 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
   <title>Devices</title>
 </head>
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/index.html">Repair Shop Admin</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/index.html">Dashboard</a>
+        <a href="/customers.html">Customers</a>
+        <a href="/devices.html" aria-current="page">Devices</a>
+        <a href="/requests.html">Requests</a>
+        <a href="/reports.html">Reports</a>
+      </nav>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </header>
   <main>
     <h1>Devices</h1>
-    <p><a href="/customers.html">Manage customers</a></p>
-    <form id="device-form">
-      <select name="customerId" id="customer-id" required></select>
-      <input name="type" placeholder="Type" required>
-      <input name="brand" placeholder="Brand" required>
-      <input name="model" placeholder="Model" required>
-      <button type="submit">Add device</button>
-    </form>
-    <label>Filter by customer <select id="filter-customer"><option value="">All customers</option></select></label>
-    <p id="device-message" role="status"></p>
-    <table>
-      <thead><tr><th>Customer</th><th>Type</th><th>Brand</th><th>Model</th><th>Actions</th></tr></thead>
-      <tbody id="device-list"></tbody>
-    </table>
+    <section class="panel">
+      <form id="device-form">
+        <select name="customerId" id="customer-id" required></select>
+        <input name="type" placeholder="Type" required>
+        <input name="brand" placeholder="Brand" required>
+        <input name="model" placeholder="Model" required>
+        <button type="submit">Add device</button>
+      </form>
+      <label>Filter by customer <select id="filter-customer"><option value="">All customers</option></select></label>
+      <p id="device-message" role="status"></p>
+      <table>
+        <thead><tr><th>Customer</th><th>Type</th><th>Brand</th><th>Model</th><th>Actions</th></tr></thead>
+        <tbody id="device-list"></tbody>
+      </table>
+    </section>
   </main>
   <script src="/app.js"></script>
+  <script>setupLogout();</script>
   <script>
     const form = document.querySelector('#device-form');
     const customerSelect = document.querySelector('#customer-id');

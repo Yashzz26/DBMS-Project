@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Service Requests</title>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/index.html">Repair Shop Admin</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/index.html">Dashboard</a>
+        <a href="/customers.html">Customers</a>
+        <a href="/devices.html">Devices</a>
+        <a href="/requests.html" aria-current="page">Requests</a>
+        <a href="/reports.html">Reports</a>
+      </nav>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </header>
+  <main>
+    <h1>Service requests</h1>
+    <section class="panel">
+      <form id="request-form">
+        <select name="customerId" id="customer-id" required><option value="">Customer</option></select>
+        <select name="deviceId" id="device-id" required><option value="">Device</option></select>
+        <input name="issueDescription" placeholder="Issue description" required>
+        <button type="submit">Add request</button>
+      </form>
+      <p id="request-message" role="status"></p>
+      <table>
+        <thead><tr><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="request-list"></tbody>
+      </table>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+  <script>setupLogout();</script>
+  <script>
+    const form = document.querySelector('#request-form');
+    const customerSelect = document.querySelector('#customer-id');
+    const deviceSelect = document.querySelector('#device-id');
+    const list = document.querySelector('#request-list');
+    const message = document.querySelector('#request-message');
+    let devices = [];
+
+    function requestRow(request) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${request.customer?.name || 'Unknown'}</td>
+        <td>${request.device ? `${request.device.brand} ${request.device.model}` : 'Unknown'}</td>
+        <td>${request.issueDescription}</td>
+        <td><select data-field="status">
+          ${['pending', 'in-progress', 'completed', 'cancelled']
+            .map((status) => `<option ${status === request.status ? 'selected' : ''}>${status}</option>`).join('')}
+        </select></td>
+        <td>${new Date(request.createdAt).toLocaleDateString()}</td>
+        <td><button data-action="save">Update</button> <button data-action="delete">Delete</button></td>`;
+      row.dataset.id = request._id;
+      return row;
+    }
+
+    async function loadRequests() {
+      const requests = await apiFetch('/api/service-requests');
+      list.replaceChildren(...requests.map(requestRow));
+    }
+
+    async function loadCustomers() {
+      const customers = await apiFetch('/api/customers');
+      customerSelect.replaceChildren(
+        new Option('Customer', ''),
+        ...customers.map((customer) => new Option(customer.name, customer._id))
+      );
+    }
+
+    async function loadDevices() {
+      devices = await apiFetch('/api/devices');
+      const customerId = customerSelect.value;
+      const filtered = devices.filter((device) => device.customerId === customerId);
+      deviceSelect.replaceChildren(
+        new Option('Device', ''),
+        ...filtered.map((device) => new Option(`${device.brand} ${device.model}`, device._id))
+      );
+    }
+
+    customerSelect.addEventListener('change', loadDevices);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await apiFetch('/api/service-requests', {
+          method: 'POST',
+          body: JSON.stringify(Object.fromEntries(new FormData(form)))
+        });
+        form.reset();
+        await loadDevices();
+        await loadRequests();
+        message.textContent = 'Service request added';
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    list.addEventListener('click', async (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const row = event.target.closest('tr');
+      try {
+        if (action === 'delete') {
+          await apiFetch(`/api/service-requests/${row.dataset.id}`, { method: 'DELETE' });
+        } else {
+          await apiFetch(`/api/service-requests/${row.dataset.id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: row.querySelector('[data-field="status"]').value })
+          });
+        }
+        await loadRequests();
+        message.textContent = 'Request updated';
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    loadCustomers()
+      .then(loadDevices)
+      .then(loadRequests)
+      .catch((error) => { message.textContent = error.message; });
+  </script>
+</body>
+</html>

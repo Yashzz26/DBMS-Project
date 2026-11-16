@@ -17,3 +17,15 @@ async function apiFetch(url, options = {}) {
 }
 
 window.apiFetch = apiFetch;
+
+function setupLogout() {
+  const logoutButton = document.querySelector('#logout');
+  if (!logoutButton) return;
+
+  logoutButton.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = '/login.html';
+  });
+}
+
+window.setupLogout = setupLogout;

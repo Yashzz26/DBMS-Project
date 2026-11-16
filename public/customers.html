@@ -3,24 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
   <title>Customers</title>
 </head>
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/index.html">Repair Shop Admin</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/index.html">Dashboard</a>
+        <a href="/customers.html" aria-current="page">Customers</a>
+        <a href="/devices.html">Devices</a>
+        <a href="/requests.html">Requests</a>
+        <a href="/reports.html">Reports</a>
+      </nav>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </header>
   <main>
     <h1>Customers</h1>
-    <form id="customer-form">
-      <input name="name" placeholder="Name" required>
-      <input name="phone" placeholder="Phone" required>
-      <input name="email" type="email" placeholder="Email">
-      <button type="submit">Add customer</button>
-    </form>
-    <p id="customer-message" role="status"></p>
-    <table>
-      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
-      <tbody id="customer-list"></tbody>
-    </table>
+    <section class="panel">
+      <form id="customer-form">
+        <input name="name" placeholder="Name" required>
+        <input name="phone" placeholder="Phone" required>
+        <input name="email" type="email" placeholder="Email">
+        <button type="submit">Add customer</button>
+      </form>
+      <p id="customer-message" role="status"></p>
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody id="customer-list"></tbody>
+      </table>
+    </section>
   </main>
   <script src="/app.js"></script>
+  <script>setupLogout();</script>
   <script>
     const form = document.querySelector('#customer-form');
     const list = document.querySelector('#customer-list');
