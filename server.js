@@ -7,6 +7,7 @@ const { connectToDatabase } = require('./db');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const deviceRoutes = require('./routes/devices');
+const serviceRequestRoutes = require('./routes/serviceRequests');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/devices', deviceRoutes);
+app.use('/api/service-requests', serviceRequestRoutes);
 
 async function startServer() {
   try {
