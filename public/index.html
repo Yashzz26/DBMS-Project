@@ -7,67 +7,235 @@
   <title>Repair Shop Dashboard</title>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="/index.html">Repair Shop Admin</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/index.html"><span class="brand-mark">R</span><span>RepairDesk</span></a>
       <nav class="site-nav" aria-label="Main navigation">
-        <a href="/index.html" aria-current="page">Dashboard</a>
-        <a href="/customers.html">Customers</a>
-        <a href="/devices.html">Devices</a>
-        <a href="/requests.html">Requests</a>
-        <a href="/reports.html">Reports</a>
+        <a href="/index.html" aria-current="page"><span>⌂</span><span>Dashboard</span></a>
+        <a href="/customers.html"><span>○</span><span>Customers</span></a>
+        <a href="/devices.html"><span>▣</span><span>Devices</span></a>
+        <a href="/requests.html"><span>◷</span><span>Requests</span></a>
+        <a href="/reports.html"><span>▥</span><span>Reports</span></a>
       </nav>
-      <button id="logout" type="button">Sign out</button>
-    </div>
-  </header>
-  <main>
-    <section class="hero">
-      <h1>Repair shop dashboard</h1>
-      <p>Manage customers, devices, repairs, and service performance from one place.</p>
-      <div class="quick-links">
-        <a class="quick-link" href="/customers.html"><strong>Customers</strong><br>View, add, edit, or remove customer records.</a>
-        <a class="quick-link" href="/devices.html"><strong>Devices</strong><br>Manage devices and filter them by customer.</a>
-        <a class="quick-link" href="/requests.html"><strong>Service requests</strong><br>Track repair issues and update their status.</a>
-        <a class="quick-link" href="/reports.html"><strong>Reports</strong><br>Review device, status, pending work, and revenue reports.</a>
+      <div class="sidebar-footer">
+        <strong>Repair Shop</strong>
+        <button id="logout" type="button">Sign out</button>
       </div>
-    </section>
-    <section class="panel">
-      <h2>Live database summary</h2>
-      <div class="quick-links">
-        <div class="quick-link"><strong id="total-customers">0</strong><br>Total customers</div>
-        <div class="quick-link"><strong id="total-devices">0</strong><br>Total devices</div>
-        <div class="quick-link"><strong id="total-requests">0</strong><br>Total service requests</div>
-        <div class="quick-link"><strong id="pending-repairs">0</strong><br>Pending repairs</div>
-        <div class="quick-link"><strong id="in-progress-repairs">0</strong><br>In progress repairs</div>
-        <div class="quick-link"><strong id="completed-repairs">0</strong><br>Completed repairs</div>
-        <div class="quick-link"><strong id="high-priority-repairs">0</strong><br>High-priority repairs</div>
-        <div class="quick-link"><strong id="average-estimated-cost">0.00</strong><br>Average estimated cost</div>
-      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <h1>Dashboard</h1>
+        </div>
+        <div class="topbar-tools">
+          <button class="icon-button" type="button" aria-label="Notifications">♢</button>
+          <button class="icon-button" type="button" aria-label="Search">⌕</button>
+        </div>
+      </header>
+
+      <section class="metric-grid" aria-label="Database summary">
+        <article class="metric-card featured">
+          <div class="metric-top"><span class="metric-icon">▥</span></div>
+          <strong class="metric-value" id="total-requests">0</strong>
+          <span class="metric-label">Total service requests</span>
+        </article>
+        <article class="metric-card">
+          <div class="metric-top"><span class="metric-icon">○</span></div>
+          <strong class="metric-value" id="total-customers">0</strong>
+          <span class="metric-label">Registered customers</span>
+        </article>
+        <article class="metric-card">
+          <div class="metric-top"><span class="metric-icon">▣</span></div>
+          <strong class="metric-value" id="total-devices">0</strong>
+          <span class="metric-label">Devices in system</span>
+        </article>
+        <article class="metric-card">
+          <div class="metric-top"><span class="metric-icon">$</span></div>
+          <strong class="metric-value" id="average-estimated-cost">0.00</strong>
+          <span class="metric-label">Average estimated cost</span>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Repair activity</h2>
+            <span class="panel-subtitle">Live database view</span>
+          </div>
+          <div class="chart-summary">
+            <strong id="completed-repairs">0</strong>
+            <span>Completed repairs</span>
+          </div>
+          <div class="bar-chart" id="status-chart" aria-label="Service request status chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Device mix</h2>
+            <span class="panel-subtitle">By requests</span>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut" id="device-donut">
+              <div class="donut-label"><strong id="device-total">0</strong><span>devices</span></div>
+            </div>
+            <div class="legend" id="device-legend"></div>
+          </div>
+          <div class="progress-list">
+            <div class="progress-row">
+              <div class="progress-title"><span>Pending</span><strong id="pending-repairs">0</strong></div>
+              <div class="progress-track"><span id="pending-bar" style="width:0%"></span></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-title"><span>In progress</span><strong id="in-progress-repairs">0</strong></div>
+              <div class="progress-track"><span id="progress-bar" style="width:0%"></span></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-title"><span>High priority</span><strong id="high-priority-repairs">0</strong></div>
+              <div class="progress-track"><span id="priority-bar" style="width:0%"></span></div>
+            </div>
+          </div>
+        </article>
+      </section>
+      <section class="dashboard-grid lower-dashboard">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Request trend</h2>
+            <span class="panel-subtitle">Monthly requests</span>
+          </div>
+          <div class="line-chart" id="request-line-chart" aria-label="Monthly service request trend"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Priority overview</h2>
+            <span class="panel-subtitle">Current queue</span>
+          </div>
+          <div class="priority-grid" id="priority-chart"></div>
+        </article>
+      </section>
       <p id="dashboard-message" role="status"></p>
-    </section>
-  </main>
+    </main>
+  </div>
   <script src="/app.js"></script>
   <script>
     setupLogout();
+
+    function setStatusChart(statusSummary) {
+      const chart = document.querySelector('#status-chart');
+      const max = Math.max(1, ...statusSummary.map((row) => row.count));
+      const labels = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+      chart.replaceChildren(...labels.map((label) => {
+        const count = statusSummary.find((row) => row._id === label)?.count || 0;
+        const column = document.createElement('div');
+        column.className = 'bar-column';
+        column.innerHTML = `<div class="bar ${label === 'Completed' ? 'active' : ''}" style="height:${Math.round(count / max * 180)}px" title="${count} ${label}"></div><label>${label}</label>`;
+        return column;
+      }));
+    }
+
+    function setDeviceLegend(stats) {
+      const legend = document.querySelector('#device-legend');
+      const total = stats.reduce((sum, row) => sum + row.totalRequests, 0);
+      document.querySelector('#device-total').textContent = total;
+      const top = stats.slice(0, 3);
+      legend.replaceChildren(...top.map((row, index) => {
+        const item = document.createElement('div');
+        item.className = 'legend-row';
+        item.innerHTML = `<span class="legend-dot ${index === 1 ? 'blue' : index === 2 ? 'gray' : ''}"></span><span>${row._id || 'Other'}</span><strong>${row.totalRequests}</strong>`;
+        return item;
+      }));
+    }
+
+    function setRequestLineChart(requests) {
+      const chart = document.querySelector('#request-line-chart');
+      const now = new Date();
+      const months = [];
+      for (let index = 5; index >= 0; index -= 1) {
+        const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
+        const key = `${date.getFullYear()}-${date.getMonth()}`;
+        months.push({
+          key,
+          label: date.toLocaleDateString(undefined, { month: 'short' }),
+          count: requests.filter((request) => {
+            const requestDate = new Date(request.request_date);
+            return `${requestDate.getFullYear()}-${requestDate.getMonth()}` === key;
+          }).length
+        });
+      }
+
+      const width = 620;
+      const height = 220;
+      const padding = 24;
+      const max = Math.max(1, ...months.map((month) => month.count));
+      const points = months.map((month, index) => {
+        const x = padding + index * ((width - padding * 2) / (months.length - 1));
+        const y = height - padding - (month.count / max) * (height - padding * 2);
+        return { x, y, ...month };
+      });
+      const polyline = points.map((point) => `${point.x},${point.y}`).join(' ');
+      const area = `${padding},${height - padding} ${polyline} ${width - padding},${height - padding}`;
+      chart.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly requests line chart" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="lineArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#dfff35" stop-opacity=".42"/>
+              <stop offset="100%" stop-color="#dfff35" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="chart-grid">
+            <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}"/>
+            <line x1="${padding}" y1="${height * .5}" x2="${width - padding}" y2="${height * .5}"/>
+          </g>
+          <polygon points="${area}" fill="url(#lineArea)"/>
+          <polyline points="${polyline}" fill="none" stroke="#9fbf24" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="7" fill="#dfff35" stroke="#fff" stroke-width="4"><title>${point.label}: ${point.count}</title></circle>`).join('')}
+          ${points.map((point) => `<text x="${point.x}" y="${height - 4}" text-anchor="middle">${point.label}</text>`).join('')}
+        </svg>`;
+    }
+
+    function setPriorityChart(requests) {
+      const priorities = ['High', 'Medium', 'Low'];
+      const chart = document.querySelector('#priority-chart');
+      const max = Math.max(1, ...priorities.map((priority) =>
+        requests.filter((request) => request.priority === priority).length));
+      chart.innerHTML = priorities.map((priority) => {
+        const count = requests.filter((request) => request.priority === priority).length;
+        return `<div class="priority-row">
+          <div class="priority-label"><span>${priority}</span><strong>${count}</strong></div>
+          <div class="priority-track"><span style="width:${count / max * 100}%"></span></div>
+        </div>`;
+      }).join('');
+    }
+
     Promise.all([
       apiFetch('/api/customers'),
       apiFetch('/api/devices'),
       apiFetch('/api/service-requests'),
       apiFetch('/api/reports/average-cost'),
-      apiFetch('/api/reports/high-priority')
-    ]).then(([customers, devices, requests, averageCost, highPriority]) => {
+      apiFetch('/api/reports/high-priority'),
+      apiFetch('/api/reports/repair-status'),
+      apiFetch('/api/reports/device-statistics')
+    ]).then(([customers, devices, requests, averageCost, highPriority, statusSummary, deviceStats]) => {
       document.querySelector('#total-customers').textContent = customers.length;
       document.querySelector('#total-devices').textContent = devices.length;
       document.querySelector('#total-requests').textContent = requests.length;
-      document.querySelector('#pending-repairs').textContent =
-        requests.filter((request) => request.status === 'Pending').length;
-      document.querySelector('#in-progress-repairs').textContent =
-        requests.filter((request) => request.status === 'In Progress').length;
-      document.querySelector('#completed-repairs').textContent =
-        requests.filter((request) => request.status === 'Completed').length;
+      const pending = requests.filter((request) => request.status === 'Pending').length;
+      const inProgress = requests.filter((request) => request.status === 'In Progress').length;
+      const completed = requests.filter((request) => request.status === 'Completed').length;
+      document.querySelector('#pending-repairs').textContent = pending;
+      document.querySelector('#in-progress-repairs').textContent = inProgress;
+      document.querySelector('#completed-repairs').textContent = completed;
       document.querySelector('#high-priority-repairs').textContent = highPriority.length;
       document.querySelector('#average-estimated-cost').textContent =
         Number(averageCost.averageEstimatedCost || 0).toFixed(2);
+      const total = Math.max(1, requests.length);
+      document.querySelector('#pending-bar').style.width = `${pending / total * 100}%`;
+      document.querySelector('#progress-bar').style.width = `${inProgress / total * 100}%`;
+      document.querySelector('#priority-bar').style.width = `${highPriority.length / total * 100}%`;
+      setStatusChart(statusSummary);
+      setDeviceLegend(deviceStats);
+      setRequestLineChart(requests);
+      setPriorityChart(requests);
     }).catch((error) => {
       document.querySelector('#dashboard-message').textContent = error.message;
     });

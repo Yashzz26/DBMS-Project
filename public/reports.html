@@ -4,110 +4,164 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/styles.css">
-  <title>Reports</title>
+  <title>Service Reports</title>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="/index.html">Repair Shop Admin</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/index.html"><span class="brand-mark">R</span><span>RepairDesk</span></a>
       <nav class="site-nav" aria-label="Main navigation">
-        <a href="/index.html">Dashboard</a>
-        <a href="/customers.html">Customers</a>
-        <a href="/devices.html">Devices</a>
-        <a href="/requests.html">Requests</a>
-        <a href="/reports.html" aria-current="page">Reports</a>
+        <a href="/index.html"><span>⌂</span><span>Dashboard</span></a>
+        <a href="/customers.html"><span>○</span><span>Customers</span></a>
+        <a href="/devices.html"><span>▣</span><span>Devices</span></a>
+        <a href="/requests.html"><span>◷</span><span>Requests</span></a>
+        <a href="/reports.html" aria-current="page"><span>▥</span><span>Reports</span></a>
       </nav>
-      <button id="logout" type="button">Sign out</button>
-    </div>
-  </header>
-  <main>
-    <h1>Service reports</h1>
-    <p id="report-message" role="status"></p>
-    <div class="report-grid">
-      <section class="panel">
-        <h2>Device-wise statistics</h2>
-        <table>
-          <thead><tr><th>Device type</th><th>Total requests</th><th>Completed</th></tr></thead>
-          <tbody id="device-stats"></tbody>
-        </table>
+      <div class="sidebar-footer"><strong>Repair Shop</strong><button id="logout" type="button">Sign out</button></div>
+    </aside>
+    <main class="workspace">
+      <header class="topbar">
+        <h1>Service reports</h1>
+        <div class="topbar-tools">
+          <button class="icon-button" type="button" aria-label="Notifications">♢</button>
+          <button class="icon-button" type="button" aria-label="Search">⌕</button>
+        </div>
+      </header>
+
+      <section class="report-summary" aria-label="Report summary">
+        <article class="report-summary-card featured">
+          <span>Total revenue</span>
+          <strong id="total-revenue">0.00</strong>
+        </article>
+        <article class="report-summary-card">
+          <span>Average service cost</span>
+          <strong id="average-cost">0.00</strong>
+        </article>
+        <article class="report-summary-card">
+          <span>Completed services</span>
+          <strong id="completed-services">0</strong>
+        </article>
+        <article class="report-summary-card">
+          <span>High-priority repairs</span>
+          <strong id="high-priority">0</strong>
+        </article>
       </section>
-      <section class="panel">
-        <h2>Status summary</h2>
-        <table>
-          <thead><tr><th>Status</th><th>Count</th></tr></thead>
-          <tbody id="status-summary"></tbody>
-        </table>
+
+      <section class="report-content-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Repair status overview</h2>
+            <span class="panel-subtitle">Live status distribution</span>
+          </div>
+          <div class="status-bars" id="status-bars"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Device statistics</h2>
+            <span class="panel-subtitle">Requests by device type</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Device type</th><th>Total</th><th>Completed</th></tr></thead>
+              <tbody id="device-stats"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel report-full-width">
+          <div class="panel-header">
+            <h2>Pending repairs</h2>
+            <span class="panel-subtitle">Pending and in-progress work</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th></tr></thead>
+              <tbody id="pending-repairs"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel report-full-width">
+          <div class="panel-header">
+            <h2>Service records</h2>
+            <span class="panel-subtitle">Repair actions and service costs</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Record</th><th>Request</th><th>Technician</th><th>Repair action</th><th>Status</th><th>Cost</th><th>Actions</th></tr></thead>
+              <tbody id="service-records"></tbody>
+            </table>
+          </div>
+        </article>
       </section>
-      <section class="panel">
-        <h2>Pending repairs</h2>
-        <table>
-          <thead><tr><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th></tr></thead>
-          <tbody id="pending-repairs"></tbody>
-        </table>
-      </section>
-      <section class="panel revenue-card">
-        <h2>Revenue summary</h2>
-        <p><strong>Total revenue:</strong> <span id="total-revenue">0</span></p>
-        <p><strong>Average service cost:</strong> <span id="average-cost">0</span></p>
-        <p><strong>Completed services:</strong> <span id="completed-services">0</span></p>
-        <p><strong>High-priority repairs:</strong> <span id="high-priority">0</span></p>
-      </section>
-      <section class="panel">
-        <h2>Service records</h2>
-        <table>
-          <thead><tr><th>Record</th><th>Request</th><th>Technician</th><th>Repair action</th><th>Status</th><th>Cost</th><th>Actions</th></tr></thead>
-          <tbody id="service-records"></tbody>
-        </table>
-      </section>
-    </div>
-  </main>
+      <p id="report-message" role="status"></p>
+    </main>
+  </div>
   <script src="/app.js"></script>
-  <script>setupLogout();</script>
   <script>
+    setupLogout();
     const message = document.querySelector('#report-message');
     const money = (value) => Number(value || 0).toFixed(2);
+    const escapeHtml = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+
+    function statusClass(status) {
+      return String(status || '').toLowerCase().replaceAll(' ', '-');
+    }
+
+    function renderStatusBars(statusSummary) {
+      const labels = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+      const counts = labels.map((label) => ({
+        label,
+        count: statusSummary.find((row) => row._id === label)?.count || 0
+      }));
+      const max = Math.max(1, ...counts.map((row) => row.count));
+      document.querySelector('#status-bars').innerHTML = counts.map((row) =>
+        `<div class="status-bar-row">
+          <span>${escapeHtml(row.label)}</span>
+          <div class="status-bar-track"><span style="width:${row.count / max * 100}%"></span></div>
+          <strong>${row.count}</strong>
+        </div>`).join('');
+    }
 
     async function loadReports() {
-      const [deviceStats, pending, statusSummary, averageCost, highPriority, revenue, records] = await Promise.all([
-        apiFetch('/api/reports/device-statistics'),
-        apiFetch('/api/reports/pending-repairs'),
-        apiFetch('/api/reports/repair-status'),
-        apiFetch('/api/reports/average-cost'),
-        apiFetch('/api/reports/high-priority'),
-        apiFetch('/api/reports/revenue'),
-        apiFetch('/api/service-records')
-      ]);
-      document.querySelector('#device-stats').replaceChildren(...deviceStats.map((row) => {
-        const element = document.createElement('tr');
-        element.innerHTML = `<td>${row._id || 'Unknown'}</td><td>${row.totalRequests}</td><td>${row.completedRequests}</td>`;
-        return element;
-      }));
-      document.querySelector('#pending-repairs').replaceChildren(...pending.map((row) => {
-        const element = document.createElement('tr');
-        element.innerHTML = `<td>${row.customer.name}</td><td>${row.device.brand} ${row.device.model}</td><td>${row.issue}</td><td>${row.status}</td>`;
-        return element;
-      }));
-      document.querySelector('#status-summary').replaceChildren(...statusSummary.map((row) => {
-        const element = document.createElement('tr');
-        element.innerHTML = `<td>${row._id}</td><td>${row.count}</td>`;
-        return element;
-      }));
+      const [deviceStats, pending, statusSummary, averageCost, highPriority, revenue, records] =
+        await Promise.all([
+          apiFetch('/api/reports/device-statistics'),
+          apiFetch('/api/reports/pending-repairs'),
+          apiFetch('/api/reports/repair-status'),
+          apiFetch('/api/reports/average-cost'),
+          apiFetch('/api/reports/high-priority'),
+          apiFetch('/api/reports/revenue'),
+          apiFetch('/api/service-records')
+        ]);
+
+      document.querySelector('#device-stats').innerHTML = deviceStats.map((row) =>
+        `<tr><td>${escapeHtml(row._id || 'Unknown')}</td><td>${row.totalRequests}</td><td>${row.completedRequests}</td></tr>`
+      ).join('');
+      document.querySelector('#pending-repairs').innerHTML = pending.map((row) =>
+        `<tr>
+          <td>${escapeHtml(row.customer?.name || 'Unknown')}</td>
+          <td>${escapeHtml(row.device ? `${row.device.brand} ${row.device.model}` : 'Unknown')}</td>
+          <td>${escapeHtml(row.issue)}</td>
+          <td><span class="status-badge ${statusClass(row.status)}">${escapeHtml(row.status)}</span></td>
+        </tr>`).join('');
+      renderStatusBars(statusSummary);
       document.querySelector('#total-revenue').textContent = money(revenue.totalRevenue);
       document.querySelector('#average-cost').textContent = money(revenue.averageCost);
       document.querySelector('#completed-services').textContent = revenue.completedServices;
-      document.querySelector('#service-records').replaceChildren(...records.map((record) => {
-        const element = document.createElement('tr');
-        element.dataset.id = record.record_id;
-        element.innerHTML = `<td>${record.record_id}</td><td>${record.request_id}</td>
-          <td contenteditable="true" data-field="technician">${record.technician}</td>
-          <td contenteditable="true" data-field="repair_action">${record.repair_action}</td>
-          <td contenteditable="true" data-field="repair_status">${record.repair_status}</td>
-          <td contenteditable="true" data-field="service_cost">${record.service_cost}</td>
-          <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
-        return element;
-      }));
       document.querySelector('#high-priority').textContent = highPriority.length;
-      document.querySelector('#average-cost').textContent = money(averageCost.averageEstimatedCost);
+      document.querySelector('#service-records').innerHTML = records.map((record) =>
+        `<tr data-id="${record.record_id}">
+          <td>${record.record_id}</td>
+          <td>${record.request_id}</td>
+          <td contenteditable="true" data-field="technician">${escapeHtml(record.technician)}</td>
+          <td contenteditable="true" data-field="repair_action">${escapeHtml(record.repair_action)}</td>
+          <td contenteditable="true" data-field="repair_status">${escapeHtml(record.repair_status)}</td>
+          <td contenteditable="true" data-field="service_cost">${money(record.service_cost)}</td>
+          <td><div class="report-actions"><button data-action="save">Save</button><button data-action="delete">Delete</button></div></td>
+        </tr>`).join('');
     }
 
     loadReports().catch((error) => { message.textContent = error.message; });
