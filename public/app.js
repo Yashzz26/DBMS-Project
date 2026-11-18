@@ -1,12 +1,17 @@
 async function apiFetch(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+  } catch {
+    throw new Error('Unable to connect to the backend. Check that the server and MongoDB are running.');
+  }
 
   if (!response.ok) {
     const result = await response.json().catch(() => ({}));

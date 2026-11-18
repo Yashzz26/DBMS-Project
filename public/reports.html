@@ -50,6 +50,14 @@
         <p><strong>Total revenue:</strong> <span id="total-revenue">0</span></p>
         <p><strong>Average service cost:</strong> <span id="average-cost">0</span></p>
         <p><strong>Completed services:</strong> <span id="completed-services">0</span></p>
+        <p><strong>High-priority repairs:</strong> <span id="high-priority">0</span></p>
+      </section>
+      <section class="panel">
+        <h2>Service records</h2>
+        <table>
+          <thead><tr><th>Record</th><th>Request</th><th>Technician</th><th>Repair action</th><th>Status</th><th>Cost</th><th>Actions</th></tr></thead>
+          <tbody id="service-records"></tbody>
+        </table>
       </section>
     </div>
   </main>
@@ -60,20 +68,23 @@
     const money = (value) => Number(value || 0).toFixed(2);
 
     async function loadReports() {
-      const [deviceStats, pending, statusSummary, revenue] = await Promise.all([
-        apiFetch('/api/reports/device-stats'),
-        apiFetch('/api/reports/pending'),
-        apiFetch('/api/reports/status-summary'),
-        apiFetch('/api/reports/revenue')
+      const [deviceStats, pending, statusSummary, averageCost, highPriority, revenue, records] = await Promise.all([
+        apiFetch('/api/reports/device-statistics'),
+        apiFetch('/api/reports/pending-repairs'),
+        apiFetch('/api/reports/repair-status'),
+        apiFetch('/api/reports/average-cost'),
+        apiFetch('/api/reports/high-priority'),
+        apiFetch('/api/reports/revenue'),
+        apiFetch('/api/service-records')
       ]);
       document.querySelector('#device-stats').replaceChildren(...deviceStats.map((row) => {
         const element = document.createElement('tr');
-        element.innerHTML = `<td>${row._id}</td><td>${row.totalRequests}</td><td>${row.completedRequests}</td>`;
+        element.innerHTML = `<td>${row._id || 'Unknown'}</td><td>${row.totalRequests}</td><td>${row.completedRequests}</td>`;
         return element;
       }));
       document.querySelector('#pending-repairs').replaceChildren(...pending.map((row) => {
         const element = document.createElement('tr');
-        element.innerHTML = `<td>${row.customer.name}</td><td>${row.device.brand} ${row.device.model}</td><td>${row.issueDescription}</td><td>${row.status}</td>`;
+        element.innerHTML = `<td>${row.customer.name}</td><td>${row.device.brand} ${row.device.model}</td><td>${row.issue}</td><td>${row.status}</td>`;
         return element;
       }));
       document.querySelector('#status-summary').replaceChildren(...statusSummary.map((row) => {
@@ -84,9 +95,44 @@
       document.querySelector('#total-revenue').textContent = money(revenue.totalRevenue);
       document.querySelector('#average-cost').textContent = money(revenue.averageCost);
       document.querySelector('#completed-services').textContent = revenue.completedServices;
+      document.querySelector('#service-records').replaceChildren(...records.map((record) => {
+        const element = document.createElement('tr');
+        element.dataset.id = record.record_id;
+        element.innerHTML = `<td>${record.record_id}</td><td>${record.request_id}</td>
+          <td contenteditable="true" data-field="technician">${record.technician}</td>
+          <td contenteditable="true" data-field="repair_action">${record.repair_action}</td>
+          <td contenteditable="true" data-field="repair_status">${record.repair_status}</td>
+          <td contenteditable="true" data-field="service_cost">${record.service_cost}</td>
+          <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
+        return element;
+      }));
+      document.querySelector('#high-priority').textContent = highPriority.length;
+      document.querySelector('#average-cost').textContent = money(averageCost.averageEstimatedCost);
     }
 
     loadReports().catch((error) => { message.textContent = error.message; });
+
+    document.querySelector('#service-records').addEventListener('click', async (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const row = event.target.closest('tr');
+      try {
+        if (action === 'delete') {
+          if (!window.confirm('Delete this service record?')) return;
+          await apiFetch(`/api/service-records/${row.dataset.id}`, { method: 'DELETE' });
+        } else {
+          const fields = Object.fromEntries([...row.querySelectorAll('[data-field]')]
+            .map((cell) => [cell.dataset.field, cell.textContent.trim()]));
+          await apiFetch(`/api/service-records/${row.dataset.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ ...fields, request_id: row.cells[1].textContent })
+          });
+        }
+        await loadReports();
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
   </script>
 </body>
 </html>

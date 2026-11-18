@@ -24,16 +24,17 @@
     <h1>Devices</h1>
     <section class="panel">
       <form id="device-form">
-        <select name="customerId" id="customer-id" required></select>
-        <input name="type" placeholder="Type" required>
+        <select name="customer_id" id="customer-id" required></select>
+        <input name="device_type" placeholder="Type" required>
         <input name="brand" placeholder="Brand" required>
         <input name="model" placeholder="Model" required>
+        <input name="problem" placeholder="Problem" required>
         <button type="submit">Add device</button>
       </form>
       <label>Filter by customer <select id="filter-customer"><option value="">All customers</option></select></label>
       <p id="device-message" role="status"></p>
       <table>
-        <thead><tr><th>Customer</th><th>Type</th><th>Brand</th><th>Model</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Customer</th><th>Type</th><th>Brand</th><th>Model</th><th>Problem</th><th>Actions</th></tr></thead>
         <tbody id="device-list"></tbody>
       </table>
     </section>
@@ -49,24 +50,26 @@
     let customers = [];
 
     function customerName(id) {
-      return customers.find((customer) => customer._id === id)?.name || 'Unknown';
+      return customers.find((customer) => customer.customer_id === Number(id))?.name || 'Unknown';
     }
 
     function deviceRow(device) {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${customerName(device.customerId)}</td>
-        <td contenteditable="true" data-field="type">${device.type}</td>
+        <td>${device.device_id}</td>
+        <td>${customerName(device.customer_id)}</td>
+        <td contenteditable="true" data-field="device_type">${device.device_type}</td>
         <td contenteditable="true" data-field="brand">${device.brand}</td>
         <td contenteditable="true" data-field="model">${device.model}</td>
+        <td contenteditable="true" data-field="problem">${device.problem}</td>
         <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
-      row.dataset.id = device._id;
-      row.dataset.customerId = device.customerId;
+      row.dataset.id = device.device_id;
+      row.dataset.customerId = device.customer_id;
       return row;
     }
 
     async function loadDevices() {
-      const suffix = filterSelect.value ? `?customerId=${filterSelect.value}` : '';
+      const suffix = filterSelect.value ? `?customer_id=${filterSelect.value}` : '';
       list.replaceChildren();
       const devices = await apiFetch(`/api/devices${suffix}`);
       devices.forEach((device) => list.append(deviceRow(device)));
@@ -74,8 +77,8 @@
 
     async function loadCustomers() {
       customers = await apiFetch('/api/customers');
-      customerSelect.replaceChildren(...customers.map((customer) => new Option(customer.name, customer._id)));
-      filterSelect.append(...customers.map((customer) => new Option(customer.name, customer._id)));
+      filterSelect.append(...customers.map((customer) => new Option(customer.name, customer.customer_id)));
+      customerSelect.replaceChildren(...customers.map((customer) => new Option(customer.name, customer.customer_id)));
     }
 
     form.addEventListener('submit', async (event) => {
@@ -100,13 +103,14 @@
       const row = event.target.closest('tr');
       try {
         if (action === 'delete') {
+          if (!window.confirm('Delete this device?')) return;
           await apiFetch(`/api/devices/${row.dataset.id}`, { method: 'DELETE' });
         } else {
           const data = Object.fromEntries([...row.querySelectorAll('[data-field]')]
             .map((cell) => [cell.dataset.field, cell.textContent.trim()]));
           await apiFetch(`/api/devices/${row.dataset.id}`, {
             method: 'PUT',
-            body: JSON.stringify({ ...data, customerId: row.dataset.customerId })
+            body: JSON.stringify({ ...data, customer_id: row.dataset.customerId })
           });
         }
         await loadDevices();

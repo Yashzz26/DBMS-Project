@@ -12,7 +12,7 @@ const serviceRecordRoutes = require('./routes/serviceRecords');
 const reportRoutes = require('./routes/reports');
 
 const app = express();
-const port = Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -33,6 +33,12 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/service-requests', serviceRequestRoutes);
 app.use('/api/service-records', serviceRecordRoutes);
 app.use('/api/reports', reportRoutes);
+
+app.use((error, req, res, next) => {
+  console.error(error);
+  if (res.headersSent) return next(error);
+  res.status(500).json({ error: 'The server could not complete that request' });
+});
 
 async function startServer() {
   try {

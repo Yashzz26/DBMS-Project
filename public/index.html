@@ -31,8 +31,46 @@
         <a class="quick-link" href="/reports.html"><strong>Reports</strong><br>Review device, status, pending work, and revenue reports.</a>
       </div>
     </section>
+    <section class="panel">
+      <h2>Live database summary</h2>
+      <div class="quick-links">
+        <div class="quick-link"><strong id="total-customers">0</strong><br>Total customers</div>
+        <div class="quick-link"><strong id="total-devices">0</strong><br>Total devices</div>
+        <div class="quick-link"><strong id="total-requests">0</strong><br>Total service requests</div>
+        <div class="quick-link"><strong id="pending-repairs">0</strong><br>Pending repairs</div>
+        <div class="quick-link"><strong id="in-progress-repairs">0</strong><br>In progress repairs</div>
+        <div class="quick-link"><strong id="completed-repairs">0</strong><br>Completed repairs</div>
+        <div class="quick-link"><strong id="high-priority-repairs">0</strong><br>High-priority repairs</div>
+        <div class="quick-link"><strong id="average-estimated-cost">0.00</strong><br>Average estimated cost</div>
+      </div>
+      <p id="dashboard-message" role="status"></p>
+    </section>
   </main>
   <script src="/app.js"></script>
-  <script>setupLogout();</script>
+  <script>
+    setupLogout();
+    Promise.all([
+      apiFetch('/api/customers'),
+      apiFetch('/api/devices'),
+      apiFetch('/api/service-requests'),
+      apiFetch('/api/reports/average-cost'),
+      apiFetch('/api/reports/high-priority')
+    ]).then(([customers, devices, requests, averageCost, highPriority]) => {
+      document.querySelector('#total-customers').textContent = customers.length;
+      document.querySelector('#total-devices').textContent = devices.length;
+      document.querySelector('#total-requests').textContent = requests.length;
+      document.querySelector('#pending-repairs').textContent =
+        requests.filter((request) => request.status === 'Pending').length;
+      document.querySelector('#in-progress-repairs').textContent =
+        requests.filter((request) => request.status === 'In Progress').length;
+      document.querySelector('#completed-repairs').textContent =
+        requests.filter((request) => request.status === 'Completed').length;
+      document.querySelector('#high-priority-repairs').textContent = highPriority.length;
+      document.querySelector('#average-estimated-cost').textContent =
+        Number(averageCost.averageEstimatedCost || 0).toFixed(2);
+    }).catch((error) => {
+      document.querySelector('#dashboard-message').textContent = error.message;
+    });
+  </script>
 </body>
 </html>

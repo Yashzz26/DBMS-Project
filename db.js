@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017';
-const dbName = process.env.DB_NAME || 'repair_shop';
+const dbName = process.env.DB_NAME || 'DBMS-Project';
 const client = new MongoClient(mongoUri);
 
 let database;

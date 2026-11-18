@@ -1,64 +1,39 @@
 const express = require('express');
-const { ObjectId } = require('mongodb');
 const { getDatabase } = require('../db');
 const requireAdmin = require('../middleware/requireAdmin');
+const { nextNumericId, parseNumericId } = require('./helpers');
 
 const router = express.Router();
-
-function parseId(id) {
-  return ObjectId.isValid(id) ? new ObjectId(id) : null;
-}
+const collectionName = 'devices';
 
 function validateDevice(body) {
-  const customerId = parseId(body.customerId);
-  const type = typeof body.type === 'string' ? body.type.trim() : '';
+  const customer = parseNumericId(body.customer_id, 'customer_id');
+  const device_type = typeof body.device_type === 'string' ? body.device_type.trim() : '';
   const brand = typeof body.brand === 'string' ? body.brand.trim() : '';
   const model = typeof body.model === 'string' ? body.model.trim() : '';
+  const problem = typeof body.problem === 'string' ? body.problem.trim() : '';
 
-  if (!customerId || !type || !brand || !model) {
-    return { error: 'customerId, type, brand, and model are required' };
+  if (customer.error || !device_type || !brand || !model || !problem) {
+    return { error: 'customer_id, device_type, brand, model, and problem are required' };
   }
 
-  return { device: { customerId, type, brand, model } };
+  return { device: { customer_id: customer.value, device_type, brand, model, problem } };
 }
 
 router.use(requireAdmin);
 
-router.post('/', async (req, res, next) => {
-  try {
-    const result = validateDevice(req.body);
-    if (result.error) {
-      return res.status(400).json({ error: result.error });
-    }
-
-    const customer = await getDatabase().collection('customers')
-      .findOne({ _id: result.device.customerId }, { projection: { _id: 1 } });
-    if (!customer) {
-      return res.status(400).json({ error: 'Customer not found' });
-    }
-
-    const device = { ...result.device, createdAt: new Date(), updatedAt: new Date() };
-    const insertResult = await getDatabase().collection('devices').insertOne(device);
-    res.status(201).json({ ...device, _id: insertResult.insertedId });
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.get('/', async (req, res, next) => {
   try {
     const filter = {};
-    if (req.query.customerId) {
-      const customerId = parseId(req.query.customerId);
-      if (!customerId) {
-        return res.status(400).json({ error: 'Invalid customer id' });
-      }
-      filter.customerId = customerId;
+    if (req.query.customer_id !== undefined) {
+      const parsed = parseNumericId(req.query.customer_id, 'customer_id');
+      if (parsed.error) return res.status(400).json(parsed);
+      filter.customer_id = parsed.value;
     }
 
-    const devices = await getDatabase().collection('devices')
+    const devices = await getDatabase().collection(collectionName)
       .find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ device_id: 1 })
       .toArray();
     res.json(devices);
   } catch (error) {
@@ -68,17 +43,35 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ error: 'Invalid device id' });
-    }
+    const parsed = parseNumericId(req.params.id, 'device id');
+    if (parsed.error) return res.status(400).json(parsed);
 
-    const device = await getDatabase().collection('devices').findOne({ _id: id });
-    if (!device) {
-      return res.status(404).json({ error: 'Device not found' });
-    }
-
+    const device = await getDatabase().collection(collectionName)
+      .findOne({ device_id: parsed.value });
+    if (!device) return res.status(404).json({ error: 'Device not found' });
     res.json(device);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/', async (req, res, next) => {
+  try {
+    const result = validateDevice(req.body);
+    if (result.error) return res.status(400).json({ error: result.error });
+
+    const database = getDatabase();
+    const customer = await database.collection('customers')
+      .findOne({ customer_id: result.device.customer_id }, { projection: { _id: 1 } });
+    if (!customer) return res.status(400).json({ error: 'Customer not found' });
+
+    const collection = database.collection(collectionName);
+    const device = {
+      device_id: await nextNumericId(collection, 'device_id'),
+      ...result.device
+    };
+    await collection.insertOne(device);
+    res.status(201).json(device);
   } catch (error) {
     next(error);
   }
@@ -86,32 +79,23 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ error: 'Invalid device id' });
-    }
-
+    const parsed = parseNumericId(req.params.id, 'device id');
+    if (parsed.error) return res.status(400).json(parsed);
     const result = validateDevice(req.body);
-    if (result.error) {
-      return res.status(400).json({ error: result.error });
-    }
+    if (result.error) return res.status(400).json({ error: result.error });
 
-    const customer = await getDatabase().collection('customers')
-      .findOne({ _id: result.device.customerId }, { projection: { _id: 1 } });
-    if (!customer) {
-      return res.status(400).json({ error: 'Customer not found' });
-    }
+    const database = getDatabase();
+    const customer = await database.collection('customers')
+      .findOne({ customer_id: result.device.customer_id }, { projection: { _id: 1 } });
+    if (!customer) return res.status(400).json({ error: 'Customer not found' });
 
-    const updateResult = await getDatabase().collection('devices').findOneAndUpdate(
-      { _id: id },
-      { $set: { ...result.device, updatedAt: new Date() } },
+    const updated = await database.collection(collectionName).findOneAndUpdate(
+      { device_id: parsed.value },
+      { $set: result.device },
       { returnDocument: 'after' }
     );
-    if (!updateResult) {
-      return res.status(404).json({ error: 'Device not found' });
-    }
-
-    res.json(updateResult);
+    if (!updated) return res.status(404).json({ error: 'Device not found' });
+    res.json(updated);
   } catch (error) {
     next(error);
   }
@@ -119,17 +103,13 @@ router.put('/:id', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ error: 'Invalid device id' });
-    }
+    const parsed = parseNumericId(req.params.id, 'device id');
+    if (parsed.error) return res.status(400).json(parsed);
 
-    const deleteResult = await getDatabase().collection('devices').deleteOne({ _id: id });
-    if (!deleteResult.deletedCount) {
-      return res.status(404).json({ error: 'Device not found' });
-    }
-
-    res.json({ ok: true });
+    const result = await getDatabase().collection(collectionName)
+      .deleteOne({ device_id: parsed.value });
+    if (!result.deletedCount) return res.status(404).json({ error: 'Device not found' });
+    res.status(204).end();
   } catch (error) {
     next(error);
   }

@@ -24,14 +24,16 @@
     <h1>Service requests</h1>
     <section class="panel">
       <form id="request-form">
-        <select name="customerId" id="customer-id" required><option value="">Customer</option></select>
-        <select name="deviceId" id="device-id" required><option value="">Device</option></select>
-        <input name="issueDescription" placeholder="Issue description" required>
+        <select name="customer_id" id="customer-id" required><option value="">Customer</option></select>
+        <select name="device_id" id="device-id" required><option value="">Device</option></select>
+        <input name="issue" placeholder="Issue description" required>
+        <select name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+        <input name="estimated_cost" type="number" min="0" step="0.01" placeholder="Estimated cost" required>
         <button type="submit">Add request</button>
       </form>
       <p id="request-message" role="status"></p>
       <table>
-        <thead><tr><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Customer</th><th>Device</th><th>Issue</th><th>Priority</th><th>Estimated cost</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody id="request-list"></tbody>
       </table>
     </section>
@@ -49,16 +51,19 @@
     function requestRow(request) {
       const row = document.createElement('tr');
       row.innerHTML = `
+        <td>${request.request_id}</td>
         <td>${request.customer?.name || 'Unknown'}</td>
         <td>${request.device ? `${request.device.brand} ${request.device.model}` : 'Unknown'}</td>
-        <td>${request.issueDescription}</td>
+        <td>${request.issue}</td>
+        <td>${request.priority}</td>
+        <td>${Number(request.estimated_cost || 0).toFixed(2)}</td>
         <td><select data-field="status">
-          ${['pending', 'in-progress', 'completed', 'cancelled']
+          ${['Pending', 'In Progress', 'Completed', 'Cancelled']
             .map((status) => `<option ${status === request.status ? 'selected' : ''}>${status}</option>`).join('')}
         </select></td>
-        <td>${new Date(request.createdAt).toLocaleDateString()}</td>
+        <td>${new Date(request.request_date).toLocaleDateString()}</td>
         <td><button data-action="save">Update</button> <button data-action="delete">Delete</button></td>`;
-      row.dataset.id = request._id;
+      row.dataset.id = request.request_id;
       return row;
     }
 
@@ -71,17 +76,17 @@
       const customers = await apiFetch('/api/customers');
       customerSelect.replaceChildren(
         new Option('Customer', ''),
-        ...customers.map((customer) => new Option(customer.name, customer._id))
+        ...customers.map((customer) => new Option(customer.name, customer.customer_id))
       );
     }
 
     async function loadDevices() {
       devices = await apiFetch('/api/devices');
       const customerId = customerSelect.value;
-      const filtered = devices.filter((device) => device.customerId === customerId);
+      const filtered = devices.filter((device) => String(device.customer_id) === customerId);
       deviceSelect.replaceChildren(
         new Option('Device', ''),
-        ...filtered.map((device) => new Option(`${device.brand} ${device.model}`, device._id))
+        ...filtered.map((device) => new Option(`${device.brand} ${device.model}`, device.device_id))
       );
     }
 
@@ -108,6 +113,7 @@
       const row = event.target.closest('tr');
       try {
         if (action === 'delete') {
+          if (!window.confirm('Delete this service request?')) return;
           await apiFetch(`/api/service-requests/${row.dataset.id}`, { method: 'DELETE' });
         } else {
           await apiFetch(`/api/service-requests/${row.dataset.id}/status`, {

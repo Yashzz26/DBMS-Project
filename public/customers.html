@@ -27,11 +27,13 @@
         <input name="name" placeholder="Name" required>
         <input name="phone" placeholder="Phone" required>
         <input name="email" type="email" placeholder="Email">
+        <input name="city" placeholder="City" required>
         <button type="submit">Add customer</button>
       </form>
+      <input id="customer-search" placeholder="Search customers">
       <p id="customer-message" role="status"></p>
       <table>
-        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>City</th><th>Actions</th></tr></thead>
         <tbody id="customer-list"></tbody>
       </table>
     </section>
@@ -42,22 +44,34 @@
     const form = document.querySelector('#customer-form');
     const list = document.querySelector('#customer-list');
     const message = document.querySelector('#customer-message');
+    const search = document.querySelector('#customer-search');
+    let customers = [];
 
     function customerRow(customer) {
       const row = document.createElement('tr');
       row.innerHTML = `
+        <td>${customer.customer_id}</td>
         <td contenteditable="true" data-field="name">${customer.name}</td>
         <td contenteditable="true" data-field="phone">${customer.phone}</td>
         <td contenteditable="true" data-field="email">${customer.email || ''}</td>
+        <td contenteditable="true" data-field="city">${customer.city}</td>
         <td><button data-action="save">Save</button> <button data-action="delete">Delete</button></td>`;
-      row.dataset.id = customer._id;
+      row.dataset.id = customer.customer_id;
       return row;
     }
 
     async function loadCustomers() {
       list.replaceChildren();
-      const customers = await apiFetch('/api/customers');
-      customers.forEach((customer) => list.append(customerRow(customer)));
+      customers = await apiFetch('/api/customers');
+      renderCustomers();
+    }
+
+    function renderCustomers() {
+      const term = search.value.trim().toLowerCase();
+      list.replaceChildren(...customers
+        .filter((customer) => [customer.name, customer.phone, customer.email, customer.city]
+          .some((value) => String(value || '').toLowerCase().includes(term)))
+        .map(customerRow));
     }
 
     form.addEventListener('submit', async (event) => {
@@ -79,6 +93,7 @@
       const row = event.target.closest('tr');
       try {
         if (action === 'delete') {
+          if (!window.confirm('Delete this customer?')) return;
           await apiFetch(`/api/customers/${row.dataset.id}`, { method: 'DELETE' });
         } else {
           const data = Object.fromEntries([...row.querySelectorAll('[data-field]')]
@@ -94,6 +109,7 @@
       }
     });
 
+    search.addEventListener('input', renderCustomers);
     loadCustomers().catch((error) => { message.textContent = error.message; });
   </script>
 </body>

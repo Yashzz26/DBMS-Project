@@ -13,7 +13,7 @@ This repository (`https://github.com/Yashzz26/DBMS-Project.git`) is for the **CC
 
 - Node.js + Express.js
 - Official `mongodb` driver (**no Mongoose**)
-- MongoDB running locally (`mongodb://127.0.0.1:27017`, database `repair_shop`)
+- MongoDB running locally (`mongodb://127.0.0.1:27017`, database `DBMS-Project`)
 - Plain HTML5 + CSS3 + vanilla JavaScript (served from `/public` by Express)
 - `express-session` for admin auth
 - `dotenv` for environment variables
@@ -23,11 +23,10 @@ This repository (`https://github.com/Yashzz26/DBMS-Project.git`) is for the **CC
 ### Product scope
 
 - Single repair shop, single admin
-- Collections: `customers`, `devices`, `serviceRequests`, `serviceRecords`
-- Full CRUD on customers, devices, service requests
-- Status lifecycle: `pending` → `in-progress` → `completed` / `cancelled`
-- Auto-insert into `serviceRecords` when a request is marked `completed`
-- 4 aggregation reports: device-wise stats, pending repairs, status summary, revenue
+- Collections: `customers`, `devices`, `service_requests`, `service_records`
+- Full CRUD on customers, devices, service requests, and service records
+- Status lifecycle: `Pending` → `In Progress` → `Completed` / `Cancelled`
+- Five aggregation report endpoints: repair status, device statistics, pending repairs, average cost, and high priority
 - Admin login gate (credentials via `.env`)
 - Seed script with realistic sample data
 
@@ -105,8 +104,8 @@ Every commit message must be **short, plain, human-readable**, e.g.:
   - Run `npm init`, install `express`, `mongodb`, `dotenv`, `express-session`, `nodemon`.
   - Create folder structure: `server.js`, `db.js`, `routes/`, `middleware/`, `public/`, `scripts/`.
   - Create `.gitignore` (`node_modules/`, `.env`, `*.log`), `.env.example` with placeholders.
-  - `db.js` exports a `MongoClient` connection to `repair_shop` database.
-  - `server.js` boots Express, connects to MongoDB, serves `/public`, has `GET /api/health` returning `{ ok: true }`.
+  - `db.js` exports a `MongoClient` connection to the existing `DBMS-Project` database.
+  - `server.js` boots Express on port `5000`, connects to MongoDB, serves `/public`, and has `GET /api/health` returning `{ ok: true }`.
   - **Commit:** `set up express server and mongo connection`
   - **Test:** `curl http://localhost:3000/api/health` returns ok.
 

@@ -5,53 +5,10 @@ const requireAdmin = require('../middleware/requireAdmin');
 const router = express.Router();
 router.use(requireAdmin);
 
-router.get('/device-stats', async (req, res, next) => {
+router.get('/repair-status', async (req, res, next) => {
   try {
-    const report = await getDatabase().collection('serviceRequests').aggregate([
-      // Join each request to its registered device.
-      { $lookup: { from: 'devices', localField: 'deviceId', foreignField: '_id', as: 'device' } },
-      // Ignore requests whose device reference no longer exists.
-      { $unwind: '$device' },
-      // Count requests and completed requests for each device type.
-      { $group: {
-        _id: '$device.type',
-        totalRequests: { $sum: 1 },
-        completedRequests: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } }
-      } },
-      // Show the busiest device types first.
-      { $sort: { totalRequests: -1, _id: 1 } }
-    ]).toArray();
-    res.json(report);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/pending', async (req, res, next) => {
-  try {
-    const report = await getDatabase().collection('serviceRequests').aggregate([
-      // Keep only repairs that still need work.
-      { $match: { status: { $in: ['pending', 'in-progress'] } } },
-      // Add customer and device details for the report table.
-      { $lookup: { from: 'customers', localField: 'customerId', foreignField: '_id', as: 'customer' } },
-      { $lookup: { from: 'devices', localField: 'deviceId', foreignField: '_id', as: 'device' } },
-      { $unwind: '$customer' },
-      { $unwind: '$device' },
-      // Oldest pending repair gets attention first.
-      { $sort: { createdAt: 1 } }
-    ]).toArray();
-    res.json(report);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/status-summary', async (req, res, next) => {
-  try {
-    const report = await getDatabase().collection('serviceRequests').aggregate([
-      // Group all requests by their lifecycle status.
+    const report = await getDatabase().collection('service_requests').aggregate([
       { $group: { _id: '$status', count: { $sum: 1 } } },
-      // Return a stable, readable order for the dashboard.
       { $sort: { _id: 1 } }
     ]).toArray();
     res.json(report);
@@ -60,20 +17,93 @@ router.get('/status-summary', async (req, res, next) => {
   }
 });
 
-router.get('/revenue', async (req, res, next) => {
+router.get('/device-statistics', async (req, res, next) => {
   try {
-    const report = await getDatabase().collection('serviceRecords').aggregate([
-      // Aggregate completed service record costs into one summary.
+    const report = await getDatabase().collection('service_requests').aggregate([
+      { $lookup: {
+        from: 'devices',
+        localField: 'device_id',
+        foreignField: 'device_id',
+        as: 'device'
+      } },
+      { $unwind: '$device' },
+      { $group: {
+        _id: '$device.device_type',
+        totalRequests: { $sum: 1 },
+        completedRequests: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] } }
+      } },
+      { $sort: { totalRequests: -1, _id: 1 } }
+    ]).toArray();
+    res.json(report);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/pending-repairs', async (req, res, next) => {
+  try {
+    const report = await getDatabase().collection('service_requests').aggregate([
+      { $match: { status: { $in: ['Pending', 'In Progress'] } } },
+      { $lookup: { from: 'customers', localField: 'customer_id', foreignField: 'customer_id', as: 'customer' } },
+      { $lookup: { from: 'devices', localField: 'device_id', foreignField: 'device_id', as: 'device' } },
+      { $unwind: '$customer' },
+      { $unwind: '$device' },
+      { $sort: { request_date: 1 } }
+    ]).toArray();
+    res.json(report);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/average-cost', async (req, res, next) => {
+  try {
+    const report = await getDatabase().collection('service_requests').aggregate([
       { $group: {
         _id: null,
-        totalRevenue: { $sum: '$cost' },
-        averageCost: { $avg: '$cost' },
+        averageEstimatedCost: { $avg: '$estimated_cost' },
+        totalRequests: { $sum: 1 }
+      } },
+      { $project: { _id: 0, averageEstimatedCost: 1, totalRequests: 1 } }
+    ]).next();
+    res.json(report || { averageEstimatedCost: 0, totalRequests: 0 });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/high-priority', async (req, res, next) => {
+  try {
+    const report = await getDatabase().collection('service_requests').aggregate([
+      { $match: { priority: 'High' } },
+      { $lookup: { from: 'customers', localField: 'customer_id', foreignField: 'customer_id', as: 'customer' } },
+      { $lookup: { from: 'devices', localField: 'device_id', foreignField: 'device_id', as: 'device' } },
+      { $unwind: '$customer' },
+      { $unwind: '$device' },
+      { $sort: { request_date: 1 } }
+    ]).toArray();
+    res.json(report);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Keep the original report URLs working for existing bookmarks.
+router.get('/device-stats', (req, res) => res.redirect('/api/reports/device-statistics'));
+router.get('/pending', (req, res) => res.redirect('/api/reports/pending-repairs'));
+router.get('/status-summary', (req, res) => res.redirect('/api/reports/repair-status'));
+router.get('/revenue', async (req, res, next) => {
+  try {
+    const report = await getDatabase().collection('service_records').aggregate([
+      { $group: {
+        _id: null,
+        totalRevenue: { $sum: '$service_cost' },
+        averageCost: { $avg: '$service_cost' },
         completedServices: { $sum: 1 }
       } },
-      // Hide the technical grouping key from the API response.
       { $project: { _id: 0, totalRevenue: 1, averageCost: 1, completedServices: 1 } }
-    ]).toArray();
-    res.json(report[0] || { totalRevenue: 0, averageCost: 0, completedServices: 0 });
+    ]).next();
+    res.json(report || { totalRevenue: 0, averageCost: 0, completedServices: 0 });
   } catch (error) {
     next(error);
   }
